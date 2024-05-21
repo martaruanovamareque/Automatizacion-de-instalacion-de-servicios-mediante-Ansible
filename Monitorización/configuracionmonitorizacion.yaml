@@ -1,0 +1,12 @@
+- name: Instalar monitorización
+  hosts: monitor
+  become: yes
+  roles:
+    - prometheus
+    - grafana
+
+- name: Instalar node-exporter
+  hosts: proxecto
+  become: yes
+  roles:
+    - node-exporter
