@@ -1,0 +1,16 @@
+- hosts: proxecto
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo Docker e Docker-compose
+    apt:
+      name:
+        - docker
+        - docker-compose
+      state: latest
+      update_cache: true
+  - name: Reinicio do servizo docker e docker-compose
+    service:
+      name:
+        - docker
+        - docker-compose
+      state: restarted

@@ -1,0 +1,17 @@
+- hosts: proxecto
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo FTP
+    apt:
+      name: vsftp
+      state: latest
+      update_cache: true
+  - name: Copia do arquivo de configuración
+    copy:
+      src: /proxecto/FTP/vsftpd.conf
+      dest: /etc/vsftpd.conf
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo
+    service:
+      name: vsftpd
+      state: restarted
