@@ -1,17 +1,22 @@
 # Automatización de instalacion de servicios y aplicaciones mediante Ansible
-Realizado en entorno *Debian*, con una lista básica de servicios y aplicaciones y contiene ficheros para poder llevar a cabo la monitorización de las automatizaciones con Ansible.
+Realizado en entorno *Debian*, con una lista básica de servicios y aplicaciones y contiene ficheros para poder llevar a cabo la monitorización de las automatizaciones con Ansible en hosts *Linux*, concretamente *Debian*, y *Windows*.
 
 A continuación se pueden ver los servizos y las aplicaciones
 
 | Servizos  | Aplicaciones |
 | --- | ---------------------- |
-| DNS (bind9) |  |
-| DHCP (isc-dhc-server) |  |
-| FTP (vsftpd) |   |
-| Samba | |
-| Apache |  |
-| Docker |  |
-| DDNS (bind9 + isc-dhcp-server) |  |
+| DNS (bind9) | Adobe Acrobat Reader |
+| DHCP (isc-dhc-server) | Google Chrome |
+| FTP (vsftpd) | Kaspersky |
+| Samba | LibreOffice |
+| Apache | Visual Studio Code |
+| Docker | VLC |
+| DNS + DHCP | Dia |
+| DDNS (bind9 + isc-dhcp-server) | Wireshark |
+
+> Enlaces de interés:
+> * [Documentación de Ansible](https://docs.ansible.com/archive/ansible/2.7/index.html)
+> * [Repositorio de paquetes Chocolatey](https://community.chocolatey.org/packages)
 
 # 1.Preparación del entorno
 ## 1.1 En el equipo central
@@ -67,10 +72,116 @@ apt install -y ssh
 ```
 
 ## 1.3 En los equipos clientes *Windows*
-En los equipos *Windows* es más ociosa la tarea dadas las acciones que se deben llevar.
+> Información y comandos extraídos del enlace [Configuración de un equipo *Windows*](https://docs.ansible.com/archive/ansible/2.7/user_guide/windows_setup.html#id2)
 
+En los equipos *Windows* es más ociosa la tarea dadas las acciones que se deben llevar. Ya que necesita los siguientes requisitos:
+
+* Versiones de Windows con soporte o mantenimiento extendido
+* Version igual o posterior a la 3.0 de Powershell
+* Version igual o posterior a la 4.0 de .NET Framework
+* Tener creado y activado el WinRM Listener
+  
 Primero se tiene que actualizar Powershell y .NET Framework.
 ```
+$url = "https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Upgrade-PowerShell.ps1"
+$file = "$env:temp\Upgrade-PowerShell.ps1"
+$username = "Administrator"
+$password = "Password"
 
+(New-Object -TypeName System.Net.WebClient).DownloadFile($url, $file)
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+
+# La versión puede ser 3.0, 4.0 o 5.1
+&$file -Version 5.1 -Username $username -Password $password -Verbose
 ```
+Una vez completado el paso anterior se necesita eliminar el autoinicio de sesión y volver la política a Restricted.
+```
+# No es necesario pero es una buena práctica de seguridad
+Set-ExecutionPolicy -ExecutionPolicy Restricted -Force
+
+$reg_winlogon_path = "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon"
+Set-ItemProperty -Path $reg_winlogon_path -Name AutoAdminLogon -Value 0
+Remove-ItemProperty -Path $reg_winlogon_path -Name DefaultUserName -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $reg_winlogon_path -Name DefaultPassword -ErrorAction SilentlyContinue
+```
+Una vez realizados estes primeros pasos hay que instalar el WinRM Memory Hotfix. Es verdad que no es imperativo como tal, pero si no se instala Ansible podría fallar en la ejecución de ciertos comandos debido a que hai un *bug* o problema con el servicio WinRM que limita la memoria diponible a este. Así que, en todo caso, es preferible su instalación.
+```
+$url = "https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Install-WMF3Hotfix.ps1"
+$file = "$env:temp\Install-WMF3Hotfix.ps1"
+
+(New-Object -TypeName System.Net.WebClient).DownloadFile($url, $file)
+powershell.exe -ExecutionPolicy ByPass -File $file -Verbose
+```
+Justo después se debe instalar el WinRM Setup para configurarlo y así Ansible se podra conectar a el. Ya que junto al WinRM Listener decide como interactúa *Ansible* con los equipos *Windows*.
+```
+$url = "https://raw.githubusercontent.com/ansible/ansible-documentation/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"
+$file = "$env:temp\ConfigureRemotingForAnsible.ps1"
+
+(New-Object -TypeName System.Net.WebClient).DownloadFile($url, $file)
+
+powershell.exe -ExecutionPolicy ByPass -File $file
+```
+El servicio WinRM Listener "escucha" por uno o varios puertos para visualizar cuales está usando se emplea el siguiente comando:
+```
+winrm enumerate winrm/config/Listener
+```
+Por último, se tiene que configurar el WinRM Listener. En este caso se configuró mediante Powershell también.
+```
+$selector_set = @{
+    Address = "*"
+    Transport = "HTTPS"
+}
+$value_set = @{
+    CertificateThumbprint = "E6CDAA82EEAF2ECE8546E05DB7F3E01AA47D76CE"
+}
+
+New-WSManInstance -ResourceURI "winrm/config/Listener" -SelectorSet $selector_set -ValueSet $value_set
+```
+# 2. Playbooks
+Los playbooks son de lenguaje YAML y por lo tanto usan la estructura del mismo, que usa el doble espacio por cada elemento. En ellos se indican los hosts a los que hace efecto, si necesita los permisos de superusuarios para ejecutar las tareas que se indiquen.
+```
+#Indica los hosts a los que afecta
+- hosts: <nombre_de_los hosts>
+  #Indica si usa permisos de superusuario o no
+  become: yes/no
+  #Indica las tareas a realizar
+  tasks:
+  - name: <Nombre de la tarea>
+    #Indica el módulo necesario para la tarea
+    <módulo>:
+      #Indica los elementos necesarios para realizar la tarea
+      <atributos del módulo>
+```
+Los módulos usados en este proyecto difieren segundo el sistema operativo destino:
+| Linux | Windows |
+|-------|---------|
+| Apt | Win_file |
+| Copy | Win_copy |
+| File | Win_command/Win_shell |
+| Command/Shell | Win_chocolatey |
+| Openssl_privatekey ||
+| Openssl_certificate ||
+| Apache2_module||
+# 3. Inventarios
+> Información sobre los inventarios estáticos y sus variantes [Información, inventarios y variantes](https://docs.ansible.com/archive/ansible/2.7/user_guide/intro_inventory.html)
+
+En este proyecto solo se usó el inventario estático en dos tipos de variantes, dado que los dinámicos están destinados para trabajar con hosts que provienen de diferentes fuentes como los proveedores Cloud o LDAP. Los inventarios se encuentra en la carpeta Inventarios. Para ambas variantes del inventario hay que crear los archivos.
+## 3.1 Estático /etc/ansible/hosts
+La creación del inventario se realiza de la misma manera cualquiera archivo. Es cierto que tiene que seguir coherencia con respecto a la ruta que se especifico en el archivo "/etc/ansible/ansible.cfg".
+```
+touch /etc/ansible/hosts
+```
+Y mantiene la siguiente estructura:
+```
+[nombre del grupo de hosts]
+<ip de un hosts>
+<ip de otro hosts>
+```
+Si se quiere se puede poner un solo host no hay ningún problema.
+## 3.2 Estáticos .yaml
+Se crea como cualquier archivo normal.
+```
+touch inventario.yaml
+```
+
 
