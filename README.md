@@ -163,7 +163,9 @@ Los módulos usados en este proyecto difieren segundo el sistema operativo desti
 | Openssl_certificate ||
 | Apache2_module||
 # 3. Inventarios
+> Enlaces relativos a los inventarios:
 > Información sobre los inventarios estáticos y sus variantes [Información, inventarios y variantes](https://docs.ansible.com/archive/ansible/2.7/user_guide/intro_inventory.html)
+> Opciones de inventario de Windows [Variables del inventario](https://docs.ansible.com/archive/ansible/2.7/user_guide/windows_winrm.html#inventory-options)
 
 En este proyecto solo se usó el inventario estático en dos tipos de variantes, dado que los dinámicos están destinados para trabajar con hosts que provienen de diferentes fuentes como los proveedores Cloud o LDAP. Los inventarios se encuentra en la carpeta Inventarios. Para ambas variantes del inventario hay que crear los archivos.
 ## 3.1 Estático /etc/ansible/hosts
@@ -179,9 +181,41 @@ Y mantiene la siguiente estructura:
 ```
 Si se quiere se puede poner un solo host no hay ningún problema.
 ## 3.2 Estáticos .yaml
-Se crea como cualquier archivo normal.
+Se crea como cualquier archivo normal pero con la extensión .yaml.
 ```
 touch inventario.yaml
 ```
+Al ser un archivo yaml pose su estructura y por lo tanto tiene que seguir las normas específicas. Hay muchas maneras de indicar los hosts, ya que por ejemplo difiere entre los *Linux* y los *Windows*.
+### 3.2.1 Para hosts *Linux*
+Para este proyecto en los referentes a *Linux* solo funcionó la siguiente manera:
+```
+all:
+  hosts:
+    <nombre_host>:
+      ansible_host: <ip_host>
+      ansible_port: <puerto> #Puerto por el que funciona el servicio SSH
+      ansible_user: <usuario>
+      ansible_password: <contraseña> #Sin cifrar o cifrada
+      #Si se indica la contraseña cifrada es IMPORTANTE DEJAR una línea en blanco
+      ansible_become_user: <superusuario> #Nombre del superusuario, por defecto root
+      ansible_become_pass: <contraseña> #Sin cifrar o cifrada
+      #Línea en blanco si la contraseña se indica cifrada
+      ansible_become_method: su #Forma por la que se convierte en superusuario
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no' #Se indica la siguiente línea para que no pida confirmación a 1ª vez que se conecta por ssh
+```
+### 3.2.2 Para hosts *Windows*
+Con respecto a los inventarios de *Linux* ya cambian las variables. Para los hosts windows se indico de esta manera:
+```
+all:
+  hosts:
+    <nombre_host>:
+      ansible_host: <ip_host>
+      ansible_user:
+      ansible_password:
 
-
+      ansible_port:
+      ansible_connection:
+      ansible_winrm_server_scheme: https
+      ansible_winrm_server_cert_validation: ignore
+      ansible_winrm_transport: basic
+```
