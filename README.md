@@ -212,11 +212,11 @@ all:
   hosts:
     <nombre_host>:
       ansible_host: <ip_host>
-      ansible_user:
-      ansible_password:
-
-      ansible_port:
-      ansible_connection:
+      ansible_user: Administrador
+      ansible_password: <contraseña> #Sin cifrar o cifrada
+      #Si se indica la contraseña cifrada es IMPORTANTE DEJAR una línea en blanco
+      ansible_port: 5986 #Puerto https
+      ansible_connection: winrm
       ansible_winrm_server_scheme: https
       ansible_winrm_server_cert_validation: ignore
       ansible_winrm_transport: basic
