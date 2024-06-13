@@ -1,0 +1,17 @@
+- hosts: proba1
+  become: yes
+  tasks:
+  - name: Instlación do servizo Samba
+    apt:
+      name: samba
+      state: latest
+      update_cache: true
+  - name: Copia do arquivo de configuración
+    copy:
+      src: /proxecto/Samba/smb.conf
+      dest: /etc/samba/smb.conf
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo
+    service:
+      name: samba
+      state: restarted
