@@ -1,0 +1,9 @@
+- hosts: cliente_windows
+  gather_facts: no
+  tasks:
+  - name: Instalación de Chocolatey
+    win_shell: Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+  - name: Instalación de Wireshark
+    win_chocolatey:
+      name:
+      - wireshark

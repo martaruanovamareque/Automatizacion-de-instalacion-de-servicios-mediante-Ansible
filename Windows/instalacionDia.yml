@@ -1,0 +1,19 @@
+- hosts: cliente_windows
+  gather_facts: no
+  vars:
+    aplicacion: dia-setup-0.97.2-2-unsigned.exe
+  tasks:
+  - name: Creación da carpeta temporal para copiar o ficheiro de instalación
+    win_file:
+      path: C:\Temp
+      state: directory
+  - name: Copia do ficheiro de instalación
+    win_copy:
+      src: "/proxecto/Windows/{{ aplicacion }}"
+      dest: C:\Temp
+  - name: Instalación da aplicación Dia
+    win_command: "C:/Temp/{{ aplicacion }} /S"
+  - name: Eliminación da carpeta temporal
+    win_file:
+      path: C:\Temp
+      state: absent
