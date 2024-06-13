@@ -1,4 +1,4 @@
-![image](https://github.com/martaruanovamareque/Automatizacion-de-instalacion-de-servicios-y-aplicaciones-mediante-Ansible/assets/151929815/16af51d9-e34e-4403-9cd2-6cbd303f4ae5)# Automatización de instalacion de servicios y aplicaciones mediante Ansible
+# Automatización de instalacion de servicios y aplicaciones mediante Ansible
 >![](Fotos/Esquema_proyecto.png)
 
 Realizado en entorno *Debian*, con una lista básica de servicios y aplicaciones y contiene ficheros para poder llevar a cabo la monitorización de las automatizaciones con Ansible en hosts *Linux*, concretamente *Debian*, y *Windows*.
