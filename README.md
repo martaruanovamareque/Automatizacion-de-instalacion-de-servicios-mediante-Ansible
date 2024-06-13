@@ -19,6 +19,8 @@ A continuación se pueden ver los servizos y las aplicaciones
 > Enlaces de interés:
 > * [Documentación de Ansible](https://docs.ansible.com/archive/ansible/2.7/index.html)
 > * [Repositorio de paquetes Chocolatey](https://community.chocolatey.org/packages)
+> * [1ª Plantilla HTML para la instalación Apache](https://plantillashtmlgratis.com/todas-las-plantillas/plantilla/plantillas-html-gratuita-para-descargar-koppee/)
+> * [2ª Plantilla HTML para la instalación Apache](https://plantillashtmlgratis.com/todas-las-plantillas/plantilla/plantilla-html-gratis-medi/)
 
 # 1.Preparación del entorno
 ## 1.1 En el equipo central
