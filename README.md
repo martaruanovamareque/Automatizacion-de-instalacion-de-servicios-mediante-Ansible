@@ -182,6 +182,35 @@ Y mantiene la siguiente estructura:
 <ip de otro hosts>
 ```
 Si se quiere se puede poner un solo host no hay ningún problema.
+
+Si se realiza en este fichero las credenciales se deben de indicar en un fichero .yaml en un directorio dentro de */etc/ansible*.
+```
+mkdir /etc/ansible/group_vars
+```
+El archivo que contendra las credenciales para un grupo de hosts debe de tener el nombre de este, que se indicó el inventario. Y sigue la siguiente estructura difiriendo entre *Linux* y *Windows*.
+```
+touch <nombre_grupo_hosts>.yaml
+```
+```
+ansible_ssh_user: <usuario>
+ansible_password: <contraseña> #Sin cifrar o cifrada
+#Si se indica la contraseña cifrada es IMPORTANTE DEJAR una línea en blanco
+ansible_become_user: <superusuario>
+ansible_become_pass: <contraseña> #Sin cifrar o cifrada
+#Si se indica la contraseña cifrada es IMPORTANTE DEJAR una línea en blanco
+ansible_become_method: su
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+```
+```
+ansible_user: Administrador
+ansible_password: <contraseña> #Sin cifrar o cifrada
+#Si se indica la contraseña cifrada es IMPORTANTE DEJAR una línea en blanco
+ansible_port: 5986
+ansible_connection: winrm
+ansible_winrm_server_scheme: https
+ansible_winrm_server_cert_validation: ignore
+ansible_winrm_transport: basic
+```
 ## 3.2 Estáticos .yaml
 Se crea como cualquier archivo normal pero con la extensión .yaml.
 ```
@@ -221,3 +250,38 @@ all:
       ansible_winrm_server_cert_validation: ignore
       ansible_winrm_transport: basic
 ```
+# 4. Medidas de seguridad
+Para que hubiera seguridad durante el proceso se llevó a cabo la codificación de las contraseñas que se indican tanto el los ficheros del directorio group_vars como en los inventarios .yaml. Y se utilizó el siguiente comando que utiliza el cifrado AES-256 (Advanced Encryption Standard) en modo CBC (Cipher Block Chaining):
+```
+ansible-vault encrypt_string <contrasinal> --ask-vault-pass
+```
+De esta manera indicando una clave de paso se codifica. Y cuando se ejecute el playbook se debe de añadir en el comando --ask-vault-pass y pide la clave de paso utilizada cuando se codificó para descifrar mediante el algoritmo PBKDF2 (Password-Based Key Derivation Function2).
+# 5. Monitorización
+> Respositorio que sirvió de ayuda [Repositorio Xavki](https://gitlab.com/xavki/devopsland/-/tree/master/ansible)
+
+Para llevara a cabo una monitorización se necesito de node exporter, prometheus y grafana. En la producción de este proceso se usaron los roles de Ansible.
+```
+mkdir roles
+ansible-galaxy init roles/node-exporter
+ansible-galaxy init roles/prometheus
+ansible-galaxy init roles/grafana
+```
+Dentro de cada carpeta se indican los *handlers*, las tareas a realizar según se use ese rol y las variables que se empleen entre otras acciones.
+Para usar estes roles se necesita en el archivo de configuración hacer mención de ellos.
+```
+- name: ---- #Nombre para el proceso que se empleen esos roles
+  hosts: <nombre_host> #Host o hosts a los que va dirigido
+  become: yes/no
+  roles:
+    - #Rol 1
+    - #Rol 2
+
+- name: ----
+  hosts: <nombre_host>
+  become: yes/no
+  roles:
+    - #Rol
+```
+Y en las carpetas tasks de cada rol se indican las tareas a realizar como comprobaciones, creaciones de usuarios y directorios, instalaciones, descargar un dashboard e un datasource y añadirlo al igual que el datasource.
+
+Para más información sobre el proceso y o las tareas en la carpeta de Monitorizacion.
