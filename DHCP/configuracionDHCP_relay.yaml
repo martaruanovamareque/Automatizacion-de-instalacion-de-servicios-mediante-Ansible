@@ -1,0 +1,17 @@
+- hosts: proxecto
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo DHCP relay
+    apt:
+      name: isc-dhcp-relay
+      state: latest
+      update_cache: true
+  - name: Copia do ficheiro de configuración default
+    copy:
+      src: /proxecto/DHCP/isc-dhcp-relay
+      dest: /etc/default/isc-dhcp-relay
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo
+    systemd:
+      name: isc-dhcp-relay
+      state: restarted

@@ -1,0 +1,4 @@
+key "DDNS_UPDATE" {
+	algorithm hmac-sha256;
+	secret "7zECH+kRUGqnitAlDxz5CSK3UbuO4LhXuQGd+P1S/fY=";
+};

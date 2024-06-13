@@ -1,0 +1,22 @@
+- hosts: dns_principal
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo DHCP
+    apt:
+      name: isc-dhcp-server
+      state: latest
+      update_cache: true
+  - name: Copia do ficheiro de configuración default
+    copy:
+      src: /proxecto/DHCP/isc-dhcp-server
+      dest: /etc/default/isc-dhcp-server
+      mode: u=rw,g=r,o=r
+  - name: Copia do ficheiro de configuración principal
+    copy:
+      src: /proxecto/DHCP/dhcpd.conf
+      dest: /etc/dhcp/dhcpd.conf
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo DHCP
+    service:
+      name: isc-dhcp-server
+      state: restarted 

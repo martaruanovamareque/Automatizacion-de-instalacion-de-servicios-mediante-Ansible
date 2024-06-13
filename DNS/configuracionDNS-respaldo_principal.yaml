@@ -1,0 +1,37 @@
+- hosts: dns_principal
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo DNS
+    apt:
+      name: bind9
+      state: latest
+      update_cache: true
+  - name: Copia do ficheiro default do servizo
+    copy:
+      src: /proxecto/DNS/named
+      dest: /etc/default/named
+      mode: u=rw,g=r,o=r
+  - name: Copia do ficheiro de configuración de zonas no servidor principal
+    copy:
+      src: /proxecto/DNS/named.conf.local_respaldo_primario
+      dest: /etc/bind/named.conf.local
+      mode: u=rw,g=r,o=r
+  - name: Copia do ficheiro de opcións do servizo
+    copy:
+      src: /proxecto/DNS/named.conf.options
+      dest: /etc/bind/named.conf.options
+      mode: u=rw,g=r,o=r
+  - name: Copia do ficheiro de zona directa
+    copy:
+      src: /proxecto/DNS/db.proxecto.marta_respaldo
+      dest: /var/lib/bind/db.proxecto.marta
+      mode: u=rw,g=r,o=r
+  - name: Copia do ficheiro de zona inversa
+    copy:
+      src: /proxecto/DNS/db.10.0.2_respaldo
+      dest: /var/lib/bind/db.10.0.2
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo
+    systemd:
+      name: named
+      state: restarted

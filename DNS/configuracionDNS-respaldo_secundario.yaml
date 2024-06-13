@@ -1,0 +1,17 @@
+- hosts: dns_secundario
+  become: yes
+  tasks:
+  - name: Actualización dos repositorios e instalación do servizo DNS
+    apt:
+      name: bind9
+      state: latest
+      update_cache: true
+  - name: Copia do ficheiro de configuración de zonas no servidor secundario
+    copy:
+      src: /proxecto/DNS/named.conf.local_respaldo_secundario
+      dest: /etc/bind/named.conf.local
+      mode: u=rw,g=r,o=r
+  - name: Reinicio do servizo
+    systemd:
+      name: named
+      state: restarted

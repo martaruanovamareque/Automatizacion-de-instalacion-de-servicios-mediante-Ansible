@@ -1,0 +1,15 @@
+;
+; BIND data file for local loopback interface
+;
+$TTL	604800
+@	IN	SOA	proxecto.marta. admin.mail.proxecto.marta. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	proxecto.marta.
+@	IN	A	10.0.2.7
+dns	IN	A	10.0.2.7
+www	IN	A	10.0.2.15
