@@ -1,0 +1,88 @@
+---
+# tasks file for roles/grafana
+
+- name: Instalar gpg
+  apt:
+    name: gnupg,software-properties-common
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Engadir a chave gpg
+  apt_key:
+    url: "https://packages.grafana.com/gpg.key"
+    validate_certs: no
+
+- name: Engadir o repositorio para instalar grafana
+  apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    state: present
+    validate_certs: no
+
+- name: Instalación de grafana
+  apt:
+    name: grafana
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Inicio do servizo grafana-server
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Espera a que o servicio se levante
+  uri:
+    url: "http://127.0.0.1:3000"
+    status_code: 200
+  register: __result
+  until: __result.status == 200
+  retries: 120
+  delay: 1
+
+- name: Cambio do contrasinal do usuario admin para grafana gui
+  shell : "/usr/sbin/grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
+  register: __command_admin
+  changed_when: __command_admin.rc !=0
+
+- name: Cambio de usuario administrador
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: "{{ item.before }}"
+    line: "{{ item.after }}"
+  with_items:
+  - { before: "^;admin_user = admin", after: "admin_user = {{ grafana_admin_user }}"}
+  - { before: "^;admin_password = admin", after: "admin_password = {{ grafana_admin_password }}"}
+
+- name: Engadir o datasource de prometheus
+  grafana_datasource:
+    name: "prometheus-local"
+    grafana_url: "http://127.0.0.1:3000"
+    grafana_user: "{{ grafana_admin_user }}"
+    grafana_password: "{{ grafana_admin_password }}"
+    org_id: "1"
+    ds_type: "prometheus"
+    ds_url: "http://127.0.0.1:9090"
+  changed_when: false
+
+- name: Instalar o dashboard de node exporter
+  get_url:
+    url: https://raw.githubusercontent.com/rfrail3/grafana-dashboards/master/prometheus/node-exporter-full.json
+    dest: /var/lib/grafana/node-exporter.json
+    mode: '0755'
+
+- name: Activar o dashboard de node exporter
+  template:
+    src: dashboard-node-exporter.yml.j2
+    dest: /etc/grafana/provisioning/dashboards/dashboard-node-exporter.yml
+    mode: 0755
+  notify: reiniciar_grafana
+
+# - name: Change admin password for Grafana GUI
+#   command: /usr/sbin/grafana-cli admin reset-admin-password mypassword
+#   register: result
+
+# - debug:
+#     var: result
+
