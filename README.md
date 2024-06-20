@@ -260,7 +260,7 @@ ansible-vault encrypt_string <contrasinal> --ask-vault-pass
 De esta manera indicando una clave de paso se cifra. Y cuando se ejecute el playbook se debe de añadir en el comando la sentencia --ask-vault-pass que pide la clave de paso utilizada cuando se cifro para descifrar mediante el algoritmo PBKDF2 (Password-Based Key Derivation Function2) para aportar mayor seguridad e impedir que intercepten las credenciales.
 
 Un ejemplo del resultado del cifrado de una posible contraseña sería el siguiente:
->![](Fotos/resultado_ansible_vault.png)
+>![](Fotos/resultado_ansible_vault.PNG)
 
 Y la otra medida fué indicar las credenciales en otros ficheros en vez de en el comando de ejecución del playbook. En el caso de usar el inventario */etc/ansible/hosts* se tienen que indicar las credenciales con la contraseña cifrada en un fichero .yaml en el directorio */etc/ansible/group_vars*. Mientras que si se usa un inventario .yaml se indican en el mismo.
 
